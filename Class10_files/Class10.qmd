@@ -1,0 +1,109 @@
+---
+title: "Class 10: Structural Bioinformatics"
+author: "Nathaniel Lightle (A16669288)"
+format: pdf
+---
+
+# 1. Introduction to RCSB Protein Data Bank (PDB)
+
+Downloading CSV file for data distribution
+
+```{r}
+stats <- read.csv("Data Export Summary.csv", row.names = 1)
+head(stats)
+```
+Making a function to remove the commas from the numbers
+
+```{r}
+rm.comma <- function(x) {
+  as.numeric( gsub(",", "", x))
+}
+```
+
+Removing the commas from the dataset
+
+```{r} 
+rm.comma(stats$EM)
+```
+
+We can use `apply()` to fix the whole table 
+
+```{r}
+pdbstats <- apply(stats, 2, rm.comma)
+rownames(pdbstats) <- rownames(stats)
+pdbstats
+```
+
+>Q1: What percentage of structures in the PDB are solved by X-Ray and Electron Microscopy?
+
+```{r}
+totals <- apply(pdbstats, 2, sum)
+(totals/totals["Total"]) * 100
+```
+
+84.83% are solved by X-ray and 8.33% are solved by EM.
+
+>Q2: What proportion of structures in the PDB are protein?
+
+```{r}
+round(pdbstats[, "Total"] / sum(pdbstats[, "Total"]) * 100, 2)
+```
+
+86.67% are protein only. 
+
+>Q3: Skip
+
+Here is a lovely figure of HIP-OR with the catalytic ASP residues, the MK1 compound and the all important water 308
+
+>Q4: Water molecules normally have 3 atoms. Why do we see just one atom per water molecule in this structure?
+
+Hydrogens are smaller than the resolution. So, they don't show up.
+
+>Q5: There is a critical “conserved” water molecule in the binding site. Can you identify this water molecule? What residue number does this water molecule have?
+
+It's water molecule 308
+
+
+>Q6: Generate and save a figure clearly showing the two distinct chains of HIV-protease along with the ligand. You might also consider showing the catalytic residues ASP 25 in each chain and the critical water (we recommend “Ball & Stick” for these side-chains). Add this figure to your Quarto document
+
+![](1HSG.png)
+
+## The bio3d package for structural bioinformatics
+
+```{r}
+library(bio3d)
+
+pdb <- read.pdb("1hsg")
+pdb
+```
+
+```{r}
+head(pdb$atom)
+```
+
+# Predicting functional motions of a single structure
+
+Let's finish today with a bioinformatics calculation to predict the functional motions of a PDB structure.
+
+```{r}
+adk <- read.pdb("6s36")
+m <- nma(adk)
+```
+
+```{r}
+plot(m)
+mktrj(m, file="adk_m7.pdb")
+```
+
+>Q7. How many amino acid residues are there in this pdb object? 
+
+There are 198 amino acid residues. 
+
+>Q8. Name one of the two non-protein residues? 
+
+One of the two non-protein residues is HOH. 
+
+>Q9. How many protein chains are in this structure?
+
+There are 2 protein chains in this structure.
+

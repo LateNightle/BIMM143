@@ -1,0 +1,6 @@
+---
+title: "Class 11: Protein Structure Prediction with AlphaFold"
+author: "Nathaniel Lightle (A16669288"
+format: html
+---
+
