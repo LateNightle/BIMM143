@@ -1,0 +1,75 @@
+---
+title: "Class 16 Unix Quarto"
+author: "Nathaniel Lightle (A16669288)"
+format: pdf
+---
+
+Instance Code (i-0fb15c55e88b7b5fb)
+
+ssh -i "bioinf_nathaniel.pem" ubuntu@ec2-35-86-212-61.us-west-2.compute.amazonaws.com
+
+## Questions
+
+>Q1. What does the star character accomplish here? 
+
+The star character is essentially a variable, anything can replace it.
+
+>Q2. How many sequences are in this mouse.1.protein.faa file?
+
+There are 56,158 proteins in the mouse 1 file. 
+
+>Q3. What happens if you run the above command without the > mm-first.fa part?
+
+It doesn't save it to a file. 
+
+>Q4. What happens if you were to use two ‘>’ symbols (i.e. >> mm-first.fa)?
+
+If you use two it adds to the file instead of overwriting it.
+
+>Q5. How would you determine how many sequences are in the mm-second.fa file?
+
+I could use grep. There are 98 sequences.
+
+
+# HOMEWORK
+
+Making a plot of the downloaded .tsv file.
+
+Downloading my data...
+```{r}
+zebra <- read.delim("mm-second.x.zebrafish.tsv")
+```
+
+Organizing the data
+```{r}
+colnames(zebra) <- c("qseqid", "sseqid", "pident", "length", "mismatch", "gapopen", "qstart", "qend", "sstart", "send", "evalue", "bitscore")
+head(zebra)
+```
+
+Making a histogram
+```{r}
+hist(zebra$bitscore, breaks = 30)
+```
+
+Plotting relationship between pident and bitscore
+```{r}
+plot(zebra$pident  * (zebra$qend - zebra$qstart), zebra$bitscore)
+```
+
+Now w/ ggplot
+```{r}
+library(ggplot2)
+ggplot(zebra, aes(pident, bitscore)) + geom_point(alpha=0.1) 
+```
+
+Adding a trend line
+```{r}
+ggplot(zebra, aes((pident * (qend - qstart)), bitscore)) + geom_point(alpha=0.1) + geom_smooth() +
+  labs( 
+    x = "Percent Identity x Length",
+    y = "BitScore",
+    title = "Zebrafish Data"
+    )
+```
+
+
