@@ -1,0 +1,188 @@
+---
+title: "Class 13: Transcriptomics & RNA seq data"
+author: "Nathaniel Lightle (A16669288)"
+format: pdf
+---
+
+# Import count & meta data
+
+```{r}
+count <- read.csv("airway_scaledcounts.csv", row.names = 1)
+metadata <- read.csv("airway_metadata.csv")
+```
+```{r}
+head(count)
+head(metadata)
+```
+
+> Q1. How many genes are in this database?
+
+```{r}
+nrow(count)
+```
+There are 38694 genes in this database.
+
+> Q2. How many 'control' cell lines do we have? 
+
+```{r}
+table(metadata$dex)
+```
+There are 4 control cell lines.
+
+# Toy differential gene expression
+
+Comparing mean counts for contorl samples to mean counts for treated samples. 
+
+Step1. Determine control sample columns in `count`
+Step2. Calculate mean value per gene
+Step3. Store answer for later comparison in `control.mean`
+
+>Q3. I made the provided code more robust by using code that isn't as specific so I can use it to find the treated mean as well as the control mean.
+
+```{r}
+control.mean <- rowMeans(count[, metadata$dex == "control"])
+```
+
+>Q4. Do the same thing to get treated mean
+
+```{r}
+treated.mean <- rowMeans(count[, metadata$dex == "treated"])
+```
+
+To keep it tidy
+Organizing the vectors into a data.frame
+
+```{r}
+meancount <- data.frame(control.mean,treated.mean)
+head(meancount)
+```
+
+>Q5. 
+>  a. Making plots to show the data
+
+```{r}
+plot(meancount)
+```
+
+>  b. We want to use geom_point to graph this data w/ ggplot
+
+```{r}
+library(ggplot2)
+ggplot(meancount) +
+  aes(control.mean, treated.mean) +
+  geom_point(alpha=.2)
+  
+```
+
+>Q6. Plotting with log axis
+
+```{r}
+plot(meancount, log = "xy")
+```
+
+```{r}
+meancount$log2fc <- log2(meancount[,"treated.mean"]/meancount[,"control.mean"])
+head(meancount)
+```
+
+```{r}
+to.rm.inds <- rowSums(meancount[,1:2] == 0) > 0
+#meancount[!to.rm.inds,]
+```
+The `!` mark flips TRUE values to FALSE values, vice-a-versa
+
+```{r}
+mycount <- meancount[-to.rm.inds,]
+head(mycount)
+```
+
+>Q7. What is the purpose of the arr.ind argument in the which() function call above? Why would we then take the first column of the output and need to call the unique() function?
+
+`Which()` tells you the TRUE values from the matrix. We use the `unique()` function to make sure we don't get any repeats. 
+
+```{r}
+dim(mycount)
+```
+
+log2(FoldChange) of greater than 2 or less than -2
+
+> Q8. Using the up.ind vector above can you determine how many up regulated genes we have at the greater than 2 fc level? 
+
+```{r}
+up.ind <- mycount$log2fc > 2
+```
+There are 250 up-regulated genes.
+
+> Q9. Using the down.ind vector above can you determine how many down regulated genes we have at the greater than 2 fc level? 
+
+```{r}
+down.ind <- mycount$log2fc < (-2)
+```
+There are 367 down-regulated genes.
+
+> Q10. Do you trust these results? Why or why not?
+
+I don't trust these results because we never determined if our results were statistically significant
+
+We can use DESeq2 to analyze this data properly
+
+# Using DESeq2
+
+```{r}
+library(DESeq2)
+```
+
+```{r}
+dds <- DESeqDataSetFromMatrix(countData = count,
+                       colData = metadata,
+                       design = ~dex)
+```
+
+Runnin our analysis
+```{r}
+dds <- DESeq(dds)
+```
+
+Gettin our results
+```{r}
+res <- results(dds)
+head(res)
+```
+
+# A summary results plot
+
+Volcano plot.
+Common type of summary figure that keeps both our inner biologist and inner stats nerd happy because it shows both P-values and Log2(Fold-Changes).
+
+```{r}
+plot(res$log2FoldChange, -log(res$padj))
+abline(v=2, col="red") #everything to the right up regulated
+abline(v=-2,col="red") #everything to the left down regulated
+abline(h=-log(.05), col="blue")
+```
+
+Making this plot pretty!!
+
+```{r}
+mycols <- rep("gray", nrow(res))
+mycols[ abs(res$log2FoldChange) > 2 ]  <- "red" 
+
+inds <- (res$padj < 0.01) & (abs(res$log2FoldChange) > 2 )
+mycols[ inds ] <- "blue"
+
+# Volcano plot with custom colors 
+plot( res$log2FoldChange,  -log(res$padj), 
+ col=mycols, ylab="-Log(P-value)", xlab="Log2(FoldChange)" )
+
+# Cut-off lines
+abline(v=c(-2,2), col="gray", lty=2)
+abline(h=-log(0.1), col="gray", lty=2)
+```
+
+```{r}
+write.csv(res, file="deseq_results.csv")
+```
+
+# SAVE WORK HERE
+
+
