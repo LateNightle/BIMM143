@@ -17,7 +17,7 @@ My classwork for F23 in [BIMM143](https://bioboot.github.io/bimm143_F23/) at UC 
 
 -Class 13:[Transcriptomics & RNA seq data](https://github.com/LateNightle/BIMM143/blob/main/Class13.qmd)
 
--Class 14:[RNA Seq Analysis Project](https://github.com/LateNightle/BIMM143/blob/main/Class%2014%3A%20RNA%20seq%20analysis%20mini-proj%20(11/Class-14!!.pdf)
+-Class 14:[RNA Seq Analysis Project](https://github.com/LateNightle/BIMM143/blob/main/Class%2014%3A%20RNA%20seq%20analysis%20mini-proj%20(11/16/23/Class-14!!.pdf))_
 
 -Class 16:[Unix](https://github.com/LateNightle/BIMM143/blob/main/Class%2016%3FUnix.qmd)
 
